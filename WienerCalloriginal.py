@@ -2,8 +2,19 @@
 import scipy
 import numpy
 import os
+import glob
 import shutil
 import filecmp
+import matplotlib.pyplot as plt
+import warnings
+import math
+from PIL import Image
+
+# Functions I have to define
+from visdiff import visdiff	# Done
+from loadCFGrecon import loadCFGrecon
+from isequalFile import isequalFile
+
 class Object(object):
     pass
 
@@ -15,8 +26,10 @@ def WienerCall(cfgFN,f):
 	# BG: [inFolder]\BG\BG*.tif
 	# OTF: [inFolder]\OTF\OTF*.tif default:0
 
-	F = findall(0, 'type', 'figure', 'tag', 'TMWWaitbar') # Dont know equivalent to have placeholder graphics variable
-	del F
+	F = [x.canvas.manager.canvas.figure
+        for x in plt._pylab_helpers.Gcf.get_all_fig_managers()
+        if x.canvas.manager.window.findChild(QtWidgets.QWidget, 'TMWWaitbar')]
+	plt.close(F)
 
 	# Algorithm Settings ===========================================================
 	isFreqMask = 1	# default:1
@@ -35,13 +48,13 @@ def WienerCall(cfgFN,f):
 	if 'cfgFN' in locals() and 'f' not in locals():
 		cfgFNix = cfgFN
 		dataDIR = 'D:\\DATA\\simTIRF\\Janelia__Kural_SIM__03_29_SUM_CALM_Electro\\'
-		listData = rdir([dataDIR, '\\**\\acqImg*.tif'])	# Don't know the equivalent to rdir
-		# Not sure if lines 33 through 44 mean much ...
+		listData = glob.glob(dataDIR + '/**/acqImg*.tif', recursive=True)
+		# Not sure if these lines mean much ...
 		runEmul = 0
 		cfgFNdir = 'C:\\Users\\hirak\\Kural\\Cell Reconstruction\\practice\\2\\'
 		filename0 = 'acqImg.tif'
 		cfgFN0 = 'cfgExp.m'	# Probably gonna change this to the python file
-		f = Object()	# Let it be known that I have no idea if this is how it works
+		f = Object()	# Pretty sure this works in creating f to be an object with attributes
 		f.imgFolder = 'C:\\Users\\hirak\\Kural\\Cell Reconstruction\\practice\\2\\'
 		f.imgBGfolder = 'D:\\MATLAB\\reconData\\dataBckgrnd\\bckgrnd_Huang2018\\'	# I dont think this is used
 		f.imgOTFfolder = 'C:\\Users\\hirak\\Kural\\Cell Reconstruction\\reconData\\dataOTF\\'
@@ -98,33 +111,96 @@ def WienerCall(cfgFN,f):
     otfFolder = f.imgOTFfolder	# OTF
     bgFolder = f.imgBGfolder	# Background
     outFolder = outFolder		# Output
-    if outFolder not in locals():	# Pretty sure I could replace lines 98 - 100 with
-    	os.makedirs(outFolder)		# if not os.path.isdir(outFolder): os.makedirs(outFolder)
-    filenameList = [filename0]	# Python doesn't have cell arrays but this return a 0x0 empty cell array, so...
-    if (pathnameIn + filename0) not in locals():
-    	mfn = rdir((pathnameIn + filename0[1:len(filename0)-4]) '*.tif')	# Again, not sure about rdir
-    	filenameSrch = [mfn.name]
-    	[None, filenameSrch, None] = # cellfun(@fileparts,filenameSrch,'UniformOutput',false); I'll think about this later
-    	filenameList = strcat(filenameSrch,'.tif')	# I know this is concatenating the two but mfn.name is blank...
+    if outFolder not in locals():
+    	os.makedirs(outFolder)
+    filenameList = [filename0]	# No cell arrays but a list seems like the same thing
+    if not os.path.exists(pathnameIn + filename0):
+    	mfn = Object()
+    	mfn = sorted(glob.glob(pathnameIn + filename0[:-4] + '*.tif'))	# Not sure if sorted is needed
+    	filenameSrch = {os.path.basename(f) for f in mfn}
+    	filenameSrch = [os.path.splitext(f)[0] for f in filenameSrch]
+    	filenameList = [f + '.tif' for f in filenameSrch]
 
     # Read Images ==================================================================
     fndbgDiffOrderLeak = 'dbgDiffOrderLeak.tif'
     if fndbgDiffOrderLeak in locals():
     	del fndbgDiffOrderLeak
-    # This deletes the dbg file, if it exists
+    # I cannot tell you the purpose of these lines for the life of me
 
     # Read CFG =====================================================================
     if cfgFN not in locals():
     	print(f'--- cfgFN: (copied from) ---\n{cfgFN0}')
     	shutil.copyfile(cfgFN0, cfgFN)
     else:
-    	if filecmp.cmp(cfgFN0, cfgFN, shallow=True):	# There is a isequalFile.m but I feel like this is better
+    	if isequalFile(cfgFN0, cfgFN):	# uses isequalFile.py when made
     		print(f'--- cfgFN: (found) ---\n{cfgFN}')
     	else:
-    		# visdiff(cfgFN0,cfgFN); drawnow      look into how visdiff returns the differences and how to update figures
+    		visdiff(cfgFN0,cfgFN)
+    		plt.show()
     		inYN = input('--- Updated CFG file found ---\ncfgFN: Do you want to overwrite (overwrite uses local) [y/n]?\n')
-    		if inYN == 'y':	# Something is off about this method
+    		if inYN == 'y':
     			shutil.copyfile(cfgFN0, cfgFN)
     			print(f'cfgFN: Local is overwritten')
     		else:
     			print(f'cfgFN: Local is used')
+
+    [sys,isLoadReconParams,Aem,phaseShift,frmAvg,freqCutoff0,fcc0,fco0,freqGcenter,isBGcorrection,isOTF, PSFsigma,wienFilterCoeff,muHessian,sigmaHessian] = loadCFGrecon(cfgFN)
+    runEstimation = 1
+    copyReconParam = 0
+    if isLoadReconParams:	# Skips param calculation, except nothing is written here ...
+    elif copyParamsDIR:	# Runs if copyParamsDIR is not empty
+		shftx_file = glob.glob(copyParamsDIR + '*_diffShftx.mat')[0]
+		shfty_file = glob.glob(copyParamsDIR + '*_diffShfty.mat')[0]
+		angleweigh_file = glob.glob(copyParamsDIR + '*_angleWeigh.mat')[0]
+		shutil.copyfile(shftx_file, outFolder + '_diffShftxIN.mat')
+		shutil.copyfile(shfty_file, outFolder + '_diffShftyIN.mat')
+		shutil.copyfile(angleweigh_file, outFolder + '_angleWeighIN.mat')
+		runEstimation = 0
+		copyReconParam = 1
+		warnings.warn(f'ReconParams will be loaded from: {copyParamsDIR}')
+		# This assumes there is only a single file that ends in that way and also
+		# I would need to change the end from .mat to a .py figure I think
+	if isHessian == -1:
+		runEstimation = 0
+		copyReconParam = 0
+
+	# Bunch of variables being defined
+	bgflag = isBGcorrection	# Loads system background
+	frmAvg0 = frmAvg	# For recon parameter detection
+	rpRat = phaseShift	# SIM pattern phase shift [au, integers]
+	wienCoeff = 2	# Wiener param1 (2: 3 rotations Hessian-SIM)
+	if wienCoeff == 2:
+		nphases = 3
+		nangles = 3
+	freqCutoff0 = freqCutoff0 * fcc0	# OTF mask radius [pxSIM]
+	freqGcenter = freqGcenter
+	freqGband = 50	# Half width of the band around 'freqGcenter' [px] (grating frequency)
+	mu = muHessian	# Hessian param1
+	sigma = sigmaHessian	# Hessian param2
+	isReconInterleaved = 0
+	loadSIMPattern = 0
+	isSwapOPO = 0	# Default: 0
+	frmAvg = loadSIMPattern + frmAvg0 * (loadSIMPattern == 0)	# loadSIMPattern --> frmAvg: 1
+	twoPi = 2 * math.pi 	# You know, at first I thought this was dumb but I can see the utility
+	frmMul = 1
+	orderSwapVector = list(range(1, 10))	# No swap
+	if isSwapOPO:
+		orderSwapVector = [1, 4, 7, 2, 5, 8, 3, 6, 9]
+
+	# Image information
+	info = Image.open(pathnameIn + filenameList[0])
+	starframe0 = 1
+	zstack0 = len(info)
+	sx, sy = info.size
+	del info
+	if frmAvg == 1:
+		nEstimate = zstack0 // 9	# Number of estimates
+	else:
+		nEstimate = 1
+
+	# BG and OTF ===================================================================
+	if bgflag:
+		fn = glob.glob(bgFolder + 'background*.tif')
+		if len(fn) > 1:
+			warnings.warn(f'multiple background*.tif, using: {fn[0].name}', UserWarning)
+		bgname = os.path.basename(fn[0])
