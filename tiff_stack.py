@@ -8,7 +8,7 @@ class MainApplication(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         self.title("Tiff Stack Creator")
-        self.geometry("300x200")
+        self.geometry("300x400")
 
         self.input_files = []
         self.output_file = tk.StringVar()
