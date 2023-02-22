@@ -42,7 +42,7 @@ from compareReconOTF import compareReconOTF
 from tryexceptSkip import tryexceptSkip
 
 class Object(object):
-    pass
+	pass
 
 def WienerCall(cfgFN,f):
 	# called by runEmul.m or runs standalone
@@ -53,8 +53,8 @@ def WienerCall(cfgFN,f):
 	# OTF: [inFolder]\OTF\OTF*.tif default:0
 
 	F = [x.canvas.manager.canvas.figure
-        for x in plt._pylab_helpers.Gcf.get_all_fig_managers()
-        if x.canvas.manager.window.findChild(QtWidgets.QWidget, 'TMWWaitbar')]
+		for x in plt._pylab_helpers.Gcf.get_all_fig_managers()
+		if x.canvas.manager.window.findChild(QtWidgets.QWidget, 'TMWWaitbar')]
 	plt.close(F)
 
 	# Algorithm Settings ===========================================================
@@ -104,77 +104,77 @@ def WienerCall(cfgFN,f):
 
 		# Configure File
 		cfgfn = 'cfgExp.m'
-        cfgFN = [f.imgFolder, 'cfgExp.m']
-        cfgFN0 = [cfgFNdir, cfgFN0]
+		cfgFN = [f.imgFolder, 'cfgExp.m']
+		cfgFN0 = [cfgFNdir, cfgFN0]
 
-    # Emulator Input ===============================================================
-    elif not hasattr(f, 'isExpRun'):
-    	runEmul = 1
-    	cfgFN0 = [f.imgFolder, 'cfgEmulIMG.m']
-        filename0 = 'emulImg2.tif'
-        filename0 = 'emulImg2_noBckgrnd.tif'	# Seems redundant
-        cfgFN = 'cfgSIM.m'
-        cfgfn = cfgFN
-        cfgFN = [f.simFolder, cfgFN];	# Keep lozg (configuration)
-        if testPSF:
-            f.imgOTFfolder = 'C:\\Users\\hirak\\Kural\\Cell Reconstruction\\reconData\\dataOTF\\'
-    	else	# Outside call
-        runEmul = 0
-        cfgFN0 = cfgFN
-        cfgfn = 'cfgOTHER.m'
-        filename0 = f.filename0
-        # Pretty sure this section doesn't do anything but I'll keep it anyway
+	# Emulator Input ===============================================================
+	elif not hasattr(f, 'isExpRun'):
+		runEmul = 1
+		cfgFN0 = [f.imgFolder, 'cfgEmulIMG.m']
+		filename0 = 'emulImg2.tif'
+		filename0 = 'emulImg2_noBckgrnd.tif'	# Seems redundant
+		cfgFN = 'cfgSIM.m'
+		cfgfn = cfgFN
+		cfgFN = [f.simFolder, cfgFN];	# Keep lozg (configuration)
+		if testPSF:
+			f.imgOTFfolder = 'C:\\Users\\hirak\\Kural\\Cell Reconstruction\\reconData\\dataOTF\\'
+		else	# Outside call
+		runEmul = 0
+		cfgFN0 = cfgFN
+		cfgfn = 'cfgOTHER.m'
+		filename0 = f.filename0
+		# Pretty sure this section doesn't do anything but I'll keep it anyway
 
-    print(f'=== RUNNING: {f.imgFolder} ===')
+	print(f'=== RUNNING: {f.imgFolder} ===')
 
-    # Folder and Files =============================================================
-    if hasattr(f, 'imgFolder2'):
-    	pathnameIn = f.imgFolder2
-    	outFolder = f.simFolder2
-    else:
-    	pathnameIn = f.imgFolder
-    	outFolder = f.simFolder
-    otfFolder = f.imgOTFfolder	# OTF
-    bgFolder = f.imgBGfolder	# Background
-    outFolder = outFolder		# Output
-    if outFolder not in locals():
-    	os.makedirs(outFolder)
-    filenameList = [filename0]	# No cell arrays but a list seems like the same thing
-    if not os.path.exists(pathnameIn + filename0):
-    	mfn = Object()
-    	mfn = sorted(glob.glob(pathnameIn + filename0[:-4] + '*.tif'))	# Not sure if sorted is needed
-    	filenameSrch = {os.path.basename(f) for f in mfn}
-    	filenameSrch = [os.path.splitext(f)[0] for f in filenameSrch]
-    	filenameList = [f + '.tif' for f in filenameSrch]
+	# Folder and Files =============================================================
+	if hasattr(f, 'imgFolder2'):
+		pathnameIn = f.imgFolder2
+		outFolder = f.simFolder2
+	else:
+		pathnameIn = f.imgFolder
+		outFolder = f.simFolder
+	otfFolder = f.imgOTFfolder	# OTF
+	bgFolder = f.imgBGfolder	# Background
+	outFolder = outFolder		# Output
+	if outFolder not in locals():
+		os.makedirs(outFolder)
+	filenameList = [filename0]	# No cell arrays but a list seems like the same thing
+	if not os.path.exists(pathnameIn + filename0):
+		mfn = Object()
+		mfn = sorted(glob.glob(pathnameIn + filename0[:-4] + '*.tif'))	# Not sure if sorted is needed
+		filenameSrch = {os.path.basename(f) for f in mfn}
+		filenameSrch = [os.path.splitext(f)[0] for f in filenameSrch]
+		filenameList = [f + '.tif' for f in filenameSrch]
 
-    # Read Images ==================================================================
-    fndbgDiffOrderLeak = 'dbgDiffOrderLeak.tif'
-    if fndbgDiffOrderLeak in locals():
-    	del fndbgDiffOrderLeak
-    # I cannot tell you the purpose of these lines for the life of me
+	# Read Images ==================================================================
+	fndbgDiffOrderLeak = 'dbgDiffOrderLeak.tif'
+	if fndbgDiffOrderLeak in locals():
+		del fndbgDiffOrderLeak
+	# I cannot tell you the purpose of these lines for the life of me
 
-    # Read CFG =====================================================================
-    if cfgFN not in locals():
-    	print(f'--- cfgFN: (copied from) ---\n{cfgFN0}')
-    	shutil.copyfile(cfgFN0, cfgFN)
-    else:
-    	if isequalFile(cfgFN0, cfgFN):	# uses isequalFile.py when made
-    		print(f'--- cfgFN: (found) ---\n{cfgFN}')
-    	else:
-    		visdiff(cfgFN0,cfgFN)
-    		plt.show()
-    		inYN = input('--- Updated CFG file found ---\ncfgFN: Do you want to overwrite (overwrite uses local) [y/n]?\n')
-    		if inYN == 'y':
-    			shutil.copyfile(cfgFN0, cfgFN)
-    			print(f'cfgFN: Local is overwritten')
-    		else:
-    			print(f'cfgFN: Local is used')
+	# Read CFG =====================================================================
+	if cfgFN not in locals():
+		print(f'--- cfgFN: (copied from) ---\n{cfgFN0}')
+		shutil.copyfile(cfgFN0, cfgFN)
+	else:
+		if isequalFile(cfgFN0, cfgFN):	# uses isequalFile.py when made
+			print(f'--- cfgFN: (found) ---\n{cfgFN}')
+		else:
+			visdiff(cfgFN0,cfgFN)
+			plt.show()
+			inYN = input('--- Updated CFG file found ---\ncfgFN: Do you want to overwrite (overwrite uses local) [y/n]?\n')
+			if inYN == 'y':
+				shutil.copyfile(cfgFN0, cfgFN)
+				print(f'cfgFN: Local is overwritten')
+			else:
+				print(f'cfgFN: Local is used')
 
-    [sys,isLoadReconParams,Aem,phaseShift,frmAvg,freqCutoff0,fcc0,fco0,freqGcenter,isBGcorrection,isOTF,PSFsigma,wienFilterCoeff,muHessian,sigmaHessian] = loadCFGrecon(cfgFN)
-    runEstimation = 1
-    copyReconParam = 0
-    if isLoadReconParams:	# Skips param calculation, except nothing is written here ...
-    elif copyParamsDIR:	# Runs if copyParamsDIR is not empty
+	[sys,isLoadReconParams,Aem,phaseShift,frmAvg,freqCutoff0,fcc0,fco0,freqGcenter,isBGcorrection,isOTF,PSFsigma,wienFilterCoeff,muHessian,sigmaHessian] = loadCFGrecon(cfgFN)
+	runEstimation = 1
+	copyReconParam = 0
+	if isLoadReconParams:	# Skips param calculation, except nothing is written here ...
+	elif copyParamsDIR:	# Runs if copyParamsDIR is not empty
 		shftx_file = glob.glob(copyParamsDIR + '*_diffShftx.mat')[0]
 		shfty_file = glob.glob(copyParamsDIR + '*_diffShfty.mat')[0]
 		angleweigh_file = glob.glob(copyParamsDIR + '*_angleWeigh.mat')[0]
@@ -286,60 +286,60 @@ def WienerCall(cfgFN,f):
 				shutil.copyfile(shfty_file, pathnameOut + '_diffShftyIN.mat')
 				shutil.copyfile(angleweigh_file, pathnameOut + '_angleWeighIN.mat')
 			if cfgFN != cfgFN2:
-    			shutil.copyfile(cfgFN, cfgFN2)
-    		saveAllMAT = f'{pathnameOut}saveAll.mat'
+				shutil.copyfile(cfgFN, cfgFN2)
+			saveAllMAT = f'{pathnameOut}saveAll.mat'
 
-    		# Call =================================================================
-    		filename = filenameList[i-1]
-    		avger(filename,pathnameIn,pathnameOut)
-    		if frmAvg == 1:
-    			pathnameOutParams = genFN('dispParams',1,pathnameOut)
-    			pathnameOutParams = pathnameOut + pathnameOutParams + '/'
-    		else:
-    			pathnameOutParams = pathnameOut
-    		if not os.path.exists(pathnameOutParams):
-    			os.makedirs(pathnameOutParams)
-    		for ix in range(1, nEstimate + 1):
-    			# Definitely need to change this to be python file data, not MATLAB
-    			allvars = locals().items()
-    			tosave = [var[0] for var in allvars if not var[1].__class__.__module__.startswith('matlab.ui') and not var[1].__class__.__module__.startswith('matlab.graphics')]
-    			scipy.io.savemat(saveAllMAT, {var: locals()[var] for var in tosave})	# Saves it to a .mat file, but I don't want to deal with pickle, so...
-    			Progressbar = tqdm(total=100, desc='Parameter Estimation...')	# I cannot promise that this progress bar works
-    			starframe = starframe0 + (ix - 1) * 9
-    			zstack = zstack0
-    			if frmAvg == 1:
-    				zstack = starframe + 9 - 1	# Why this is not simply 8 I do not know
-    			try:
-    				if runEstimation:
-    					WienerShiftParam()	# I might have to define all of these variables as global variables
-    				if runEstimation:
-    					WienerWeighParam()
-    				if isHessian >= 0:
-    					WienerCore()
-    				if isHessian:	# I don't think these functions exist, also isHessian = 0
-    					# waitbar(0, Progressbar, 'Hessian reconstruction');
-                        Bregman_Hessian_LowRam_2()
-                        # waitbar(0, Progressbar, 'TV reconstruction');
-                        Bregman_TV_denoise()
-                        Running_average()
-                    Progressbar.close()
-                except Exception as e:
-                	tryexceptSkip(e)
-                try displayReconParams(filename,pathnameOutParams):
-                except Exception as e:
-                	tryexceptSkip(e)
-                excluded = ['saveAllMAT']
-                for var in [v for v in globals().keys() if v not in excluded]:
-                	del globals()[var]
-                gc.collect()
-                with open(saveAllMAT, 'rb') as fileObject:
-                	loaded = pickle.load(fileObject)
-                os.remove(saveAllMAT)
-                print(f'=== estimates: {ix}/{nEstimate} ===')
-            cc = 3
-        print(f'=== DONE: {nMovie} movies ===')
-    if 0 and nOTF > 1:
-    	fnrecon = 're-' + filename0[:-4] + '.tif'
-    	ixOpt = compareReconOTF(pathnameOutOTF,fnrecon,sigmaPSF)
-    	compareReconOTF_imageCrops(pathnameOutOTF,fnrecon,sigmaPSF)
-    messagebox.showinfo('', 'All Done')
+			# Call =================================================================
+			filename = filenameList[i-1]
+			avger(filename,pathnameIn,pathnameOut)
+			if frmAvg == 1:
+				pathnameOutParams = genFN('dispParams',1,pathnameOut)
+				pathnameOutParams = pathnameOut + pathnameOutParams + '/'
+			else:
+				pathnameOutParams = pathnameOut
+			if not os.path.exists(pathnameOutParams):
+				os.makedirs(pathnameOutParams)
+			for ix in range(1, nEstimate + 1):
+				# Definitely need to change this to be python file data, not MATLAB
+				allvars = locals().items()
+				tosave = [var[0] for var in allvars if not var[1].__class__.__module__.startswith('matlab.ui') and not var[1].__class__.__module__.startswith('matlab.graphics')]
+				scipy.io.savemat(saveAllMAT, {var: locals()[var] for var in tosave})	# Saves it to a .mat file, but I don't want to deal with pickle, so...
+				Progressbar = tqdm(total=100, desc='Parameter Estimation...')	# I cannot promise that this progress bar works
+				starframe = starframe0 + (ix - 1) * 9
+				zstack = zstack0
+				if frmAvg == 1:
+					zstack = starframe + 9 - 1	# Why this is not simply 8 I do not know
+				try:
+					if runEstimation:
+						WienerShiftParam()	# I might have to define all of these variables as global variables
+					if runEstimation:
+						WienerWeighParam()
+					if isHessian >= 0:
+						WienerCore()
+					if isHessian:	# I don't think these functions exist, also isHessian = 0
+						# waitbar(0, Progressbar, 'Hessian reconstruction');
+						Bregman_Hessian_LowRam_2()
+						# waitbar(0, Progressbar, 'TV reconstruction');
+						Bregman_TV_denoise()
+						Running_average()
+					Progressbar.close()
+				except Exception as e:
+					tryexceptSkip(e)
+				try displayReconParams(filename,pathnameOutParams):
+				except Exception as e:
+					tryexceptSkip(e)
+				excluded = ['saveAllMAT']
+				for var in [v for v in globals().keys() if v not in excluded]:
+					del globals()[var]
+				gc.collect()
+				with open(saveAllMAT, 'rb') as fileObject:
+					loaded = pickle.load(fileObject)
+				os.remove(saveAllMAT)
+				print(f'=== estimates: {ix}/{nEstimate} ===')
+			cc = 3
+		print(f'=== DONE: {nMovie} movies ===')
+	if 0 and nOTF > 1:
+		fnrecon = 're-' + filename0[:-4] + '.tif'
+		ixOpt = compareReconOTF(pathnameOutOTF,fnrecon,sigmaPSF)
+		compareReconOTF_imageCrops(pathnameOutOTF,fnrecon,sigmaPSF)
+	messagebox.showinfo('', 'All Done')
