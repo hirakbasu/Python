@@ -317,12 +317,12 @@ def WienerCall(cfgFN,f):
     				if isHessian >= 0:
     					WienerCore()
     				if isHessian:	# I don't think these functions exist, also isHessian = 0
-    				# waitbar(0, Progressbar, 'Hessian reconstruction');
-                        	Bregman_Hessian_LowRam_2()
-                        	# waitbar(0, Progressbar, 'TV reconstruction');
-                        	Bregman_TV_denoise()
-                        	Running_average()
-                    	Progressbar.close()
+    					# waitbar(0, Progressbar, 'Hessian reconstruction');
+                        Bregman_Hessian_LowRam_2()
+                        # waitbar(0, Progressbar, 'TV reconstruction');
+                        Bregman_TV_denoise()
+                        Running_average()
+                    Progressbar.close()
                 except Exception as e:
                 	tryexceptSkip(e)
                 try displayReconParams(filename,pathnameOutParams):
