@@ -5,7 +5,7 @@ from myimreadstack_TIRF import myimreadstack_TIRF
 from swap9frmOrder import swap9frmOrder
 
 def WienerShiftParam():
-	excluded = ['freqLimCalc', 'orderSwapVector', 'loadSIMPattern', 'isReconInterleaved', 'freqCutoff0', 'freqGcenter', 'freqGband', 'pathnameOut', 'pathnameOutParams', 'pathnameIn', 'filename', 'otf', 'rpRat', 'wienCoeff', 'wienFilterCoeff', 'bgflag', 'bgname', 'starframe', 'frmAvg', 'frmMul', 'filename_all', 'wavelengh', 'twoPi', 'zstack', 'sx', 'sy', 'sigma', 'mu', 'nphases', 'nangles', 'Progressbar', 'isFreqMask', 'isSmoothPhaseDetection', 'runEstimation', 'fco', 'fcc', 'saveAllMAT', 'isHessian']
+	excluded = ['freqLimCalc','orderSwapVector','loadSIMPattern','isReconInterleaved','freqCutoff0','freqGcenter','freqGband','pathnameOut','pathnameOutParams','pathnameIn','filename','otf','rpRat','wienCoeff','wienFilterCoeff','bgflag','bgname','starframe','frmAvg','frmMul','filename_all','wavelengh','twoPi','zstack','sx','sy','sigma','mu','nphases','nangles','Progressbar','isFreqMask','isSmoothPhaseDetection','runEstimation','fco','fcc','saveAllMAT','isHessian']
 	for var in [v for v in globals() if v not in excluded]:
 		del globals()[var]
 
