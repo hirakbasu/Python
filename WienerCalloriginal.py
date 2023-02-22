@@ -1,6 +1,15 @@
-# I assume I'll use these libraries and more later
-import scipy
-import numpy
+'''
+So a couple of things need to be changed here:
+	1) I cannot figure out the progress bar for the life of me, so I'm skipping it
+	2) A lot of variables reference .mat files, which need to be changed to .py files
+	3) The entirety of saveAllMAT is a mess
+	4) The way I wrote WienerShiftParam() means I have to change all of the variables to be global
+	   in both this script and also WienerShiftParam / WeighParam / Core
+	5) I should probably use dictionaries instead of making f an object, but it's fine...
+
+'''
+import scipy.io
+import numpy as np
 import os
 import glob
 import shutil
@@ -9,11 +18,29 @@ import matplotlib.pyplot as plt
 import warnings
 import math
 from PIL import Image
+import cv2
+from tqdm import tqdm
+import gc
+import pickle
+import tkinter as tk
+from tkinter import messagebox
 
 # Functions I have to define
-from visdiff import visdiff	# Done
+from visdiff import visdiff								# Done
 from loadCFGrecon import loadCFGrecon
 from isequalFile import isequalFile
+from PSF2OTF import PSF2OTF
+from fnGenericOTF import fnGenericOTF
+from imreadstack import imreadstack
+from reconStartFolders import reconStartFolders
+from avger import avger
+from genFN import genFN
+from WienerShiftParam import WienerShiftParam
+from WienerWeighParam import WienerWeighParam
+from WienerCore import WienerCore
+from displayReconParams import displayReconParams
+from compareReconOTF import compareReconOTF
+from tryexceptSkip import tryexceptSkip
 
 class Object(object):
     pass
@@ -144,7 +171,7 @@ def WienerCall(cfgFN,f):
     		else:
     			print(f'cfgFN: Local is used')
 
-    [sys,isLoadReconParams,Aem,phaseShift,frmAvg,freqCutoff0,fcc0,fco0,freqGcenter,isBGcorrection,isOTF, PSFsigma,wienFilterCoeff,muHessian,sigmaHessian] = loadCFGrecon(cfgFN)
+    [sys,isLoadReconParams,Aem,phaseShift,frmAvg,freqCutoff0,fcc0,fco0,freqGcenter,isBGcorrection,isOTF,PSFsigma,wienFilterCoeff,muHessian,sigmaHessian] = loadCFGrecon(cfgFN)
     runEstimation = 1
     copyReconParam = 0
     if isLoadReconParams:	# Skips param calculation, except nothing is written here ...
@@ -204,3 +231,116 @@ def WienerCall(cfgFN,f):
 		if len(fn) > 1:
 			warnings.warn(f'multiple background*.tif, using: {fn[0].name}', UserWarning)
 		bgname = os.path.basename(fn[0])
+
+	if not testPSF and runEmul:
+		PSF = cfgFN
+		AvP = Aem / sys.Pxy
+		[otf0,sigmaPSF] = PSF2OTF(PSF,NpxOTF,NmPSF)
+		OTFfn0 = 'AvP{:.02f}px_sigmaPSF{:.02f}px'.format(AvP, sigmaPSF)	# We'll figure out if this works like I think it does
+	else:	#Experimental
+		[OTFfn0,sigmaPSF] = fnGenericOTF(otfFolder,sys,sx,isOTF)
+		otf0 = imreadstack(OTFfn0)
+		_, OTFfn0 = os.path.splitext(OTFfn0)	# Maybe ...
+	otf0 = otf0.astype(np.uint16).astype(np.float64)
+	nOTF = np.shape(otf0)[2]
+	OTFfn0 = outFolder + 'OTF_' + OTFfn0 + '.tif'
+
+	# Loops Call ===================================================================
+	# Recon
+	if isSmoothPhaseDetection:
+		warnings.warn('isSmoothPhaseDetection:1 (default:0)')
+	nMovie = len(filenameList)
+	pathnameOutOTF = []
+	if nOTF>1:
+		pathnameOutOTF = f'{outFolder[:-1]}_OTF\\'
+		os.makedirs(pathnameOutOTF)
+	for j in range(5,7):	# You know, to this day I have no idea why 5 and 6 are chosen
+		otf = otf0[:,:,j]
+		PSFsgm = sigmaPSF[j]
+		fcc = fcc0 / PSFsgm	# What is the point of this
+		fco = fco0 / PSFsgm
+		fcc = fcc0
+		fco = fco0
+	# Folder out
+		if nOTF > 1:
+			print(f'=== OTFno:{j}/{nOTF}===\n')
+			pathnameOut0 = f'{pathnameOutOTF}{j:02d}_sigma{PSFsgm:.2f}\\'
+			_, OTFfn0_, _ = os.path.splitext(OTFfn0)
+			OTFfn = f'{pathnameOutOTF}{OTFfn0_}_ix{j:02d}.tif'
+		else:
+			OTFfn = OTFfn0
+			pathnameOut0 = outFolder
+		cv2.imwrite(OTFfn, otf.astype('uint16'))
+		for i in range(1, nMovie + 1):
+			print(f'=== running {i}/{nMovie} movie ===')
+			if nMovie > 1:
+				pathnameOut = f'{pathnameOut0[:-1]}_movie{i}\\'
+			else:
+				pathnameOut = pathnameOut0
+			cfgFN2 = pathnameOut + cfgfn
+			reconStartFolders(pathnameOut)
+			if copyReconParam:
+				shftx_file = glob.glob(copyParamsDIR + '*_diffShftx.mat')[0]
+				shfty_file = glob.glob(copyParamsDIR + '*_diffShfty.mat')[0]
+				angleweigh_file = glob.glob(copyParamsDIR + '*_angleWeigh.mat')[0]
+				shutil.copyfile(shftx_file, pathnameOut + '_diffShftxIN.mat')
+				shutil.copyfile(shfty_file, pathnameOut + '_diffShftyIN.mat')
+				shutil.copyfile(angleweigh_file, pathnameOut + '_angleWeighIN.mat')
+			if cfgFN != cfgFN2:
+    			shutil.copyfile(cfgFN, cfgFN2)
+    		saveAllMAT = f'{pathnameOut}saveAll.mat'
+
+    		# Call =================================================================
+    		filename = filenameList[i-1]
+    		avger(filename,pathnameIn,pathnameOut)
+    		if frmAvg == 1:
+    			pathnameOutParams = genFN('dispParams',1,pathnameOut)
+    			pathnameOutParams = pathnameOut + pathnameOutParams + '/'
+    		else:
+    			pathnameOutParams = pathnameOut
+    		if not os.path.exists(pathnameOutParams):
+    			os.makedirs(pathnameOutParams)
+    		for ix in range(1, nEstimate + 1):
+    			# Definitely need to change this to be python file data, not MATLAB
+    			allvars = locals().items()
+    			tosave = [var[0] for var in allvars if not var[1].__class__.__module__.startswith('matlab.ui') and not var[1].__class__.__module__.startswith('matlab.graphics')]
+    			scipy.io.savemat(saveAllMAT, {var: locals()[var] for var in tosave})	# Saves it to a .mat file, but I don't want to deal with pickle, so...
+    			Progressbar = tqdm(total=100, desc='Parameter Estimation...')	# I cannot promise that this progress bar works
+    			starframe = starframe0 + (ix - 1) * 9
+    			zstack = zstack0
+    			if frmAvg == 1:
+    				zstack = starframe + 9 - 1	# Why this is not simply 8 I do not know
+    			try:
+    				if runEstimation:
+    					WienerShiftParam()	# I might have to define all of these variables as global variables
+    				if runEstimation:
+    					WienerWeighParam()
+    				if isHessian >= 0:
+    					WienerCore()
+    				if isHessian:	# I don't think these functions exist, also isHessian = 0
+    					# waitbar(0, Progressbar, 'Hessian reconstruction');
+                        Bregman_Hessian_LowRam_2()
+                        # waitbar(0, Progressbar, 'TV reconstruction');
+                        Bregman_TV_denoise()
+                        Running_average()
+                    Progressbar.close()
+                except Exception as e:
+                	tryexceptSkip(e)
+                try displayReconParams(filename,pathnameOutParams):
+                except Exception as e:
+                	tryexceptSkip(e)
+                excluded = ['saveAllMAT']
+                for var in [v for v in globals().keys() if v not in excluded]:
+                	del globals()[var]
+                gc.collect()
+                with open(saveAllMAT, 'rb') as fileObject:
+                	loaded = pickle.load(fileObject)
+                os.remove(saveAllMAT)
+                print(f'=== estimates: {ix}/{nEstimate} ===')
+            cc = 3
+        print(f'=== DONE: {nMovie} movies ===')
+    if 0 and nOTF > 1:
+    	fnrecon = 're-' + filename0[:-4] + '.tif'
+    	ixOpt = compareReconOTF(pathnameOutOTF,fnrecon,sigmaPSF)
+    	compareReconOTF_imageCrops(pathnameOutOTF,fnrecon,sigmaPSF)
+    messagebox.showinfo('', 'All Done')
