@@ -276,14 +276,17 @@ def WienerShiftParam():
 					break
 			MAXX[wix, (rpi + 1) // 2] = maxx
 			wix += 1
+# ___________________________________________________________________________________________________________
 		diffShftx[rpi + math.floor((rpi-1)/2), :] = maxx
 		diffShfty[rpi + math.floor((rpi-1)/2), :] = maxy
 		diffShftx[rpi + 1 + math.floor((rpi-1)/2), :] = 2 * n - maxx
 		diffShfty[rpi + 1 + math.floor((rpi-1)/2), :] = 2 * n - maxy
 		DOcorrNorm6[:, :, rpi - 1] = DOcorrNorm
-		# Some Progressbar thing idk
+		Progressbar.update(rpi / ((nangles) * (nphases - 1) * 100)
+		Progressbar.set_description('Grating Vector Parameter Estimate...')
 
 	# Save (get exact syntax)
-	save(pathnameOut + filename[:-4] + '_diffShftx.py', 'diffShftx')
-	save(pathnameOut + filename[:-4] + '_diffShfty.py', 'diffShfty')
-	# Another Progressbar thing
+	np.savetxt(pathnameOut + filename[:-4] + '_diffShftx.txt', diffShftx)	# .txt could work but maybe try .py
+	np.savetxt(pathnameOut + filename[:-4] + '_diffShfty.txt', diffShfty)
+	Progressbar.update(100)
+	Progressbar.set_description('Vector Parameters Set')

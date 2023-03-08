@@ -318,9 +318,11 @@ def WienerCall(cfgFN,f):
 					if isHessian >= 0:
 						WienerCore()
 					if isHessian:	# I don't think these functions exist, also isHessian = 0
-						# waitbar(0, Progressbar, 'Hessian reconstruction');
+						Progressbar.update(0)
+						Progressbar.set_description('Hessian reconstruction')
 						Bregman_Hessian_LowRam_2()
-						# waitbar(0, Progressbar, 'TV reconstruction');
+						Progressbar.update(0)
+						Progressbar.set_description('TV reconstruction')
 						Bregman_TV_denoise()
 						Running_average()
 					Progressbar.close()
