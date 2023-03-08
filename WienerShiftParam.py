@@ -3,6 +3,7 @@ A couple of things here:
 	1) Variables need to be defined as global
 	2) It is enirely possible that some lists inside for-loops are indexed at 1 instead of 0
 	3) I am deeply dissappointed by the absence of love of the twoPi variable
+	4) maxx is two input arguments in oo (line 166 here, or line 193 in matlab) -- not sure if intentional
 '''
 
 import warnings
@@ -162,7 +163,7 @@ def WienerShiftParam():
 
 		# Test 1
 		shftKernel[:, :] = np.exp(1j*(kx*xx2 + ky*yy2))
-		oo = diffOrderOverlap(shftKernel, H1, H, DO1, DO0, maxx, maxy, dbg)
+		oo = diffOrderOverlap(shftKernel, H1, H, DO1, DO0, maxx, maxx, dbg)	# Not sure if maxx is supposed to be typed twice...
 		maxx_tmp1 = maxx - 1e-5
 		maxx_tmp2 = maxx + 1e-5
 		maxy_tmp1 = maxy - 1e-5
