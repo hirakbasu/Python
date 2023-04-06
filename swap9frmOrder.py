@@ -11,7 +11,7 @@ def swap9frmOrder(A, vs):
         vin = [1, 4, 7, 2, 5, 8, 3, 6, 9]
         A = np.ones((2, 2, 9)) * np.array(vin).reshape(1, 1, 9)
         vs = [1, 4, 7, 2, 5, 8, 3, 6, 9]  # swap vector
-        Ain = A.copy()
+        Ain = A
         isDemo = 1
     
     if np.array_equal(vs, np.arange(1,10)):
