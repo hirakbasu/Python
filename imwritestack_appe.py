@@ -10,9 +10,12 @@ def imwritestack_appe(stack, filename):
         tagstruct['BitsPerSample'] = 32
         tagstruct['SampleFormat'] = 'float'
         tagstruct['PlanarConfiguration'] = 'contig'
-
-        for k in range(stack.shape[2]):
-            t.write(stack[:, :, k], metadata=tagstruct)
+        
+        try:
+            for k in range(stack.shape[2]):
+                t.write(stack[:, :, k], metadata = tagstruct)
+        except:
+            t.write(stack[:, :], metadata = tagstruct)
 
     t.close()
 
@@ -21,10 +24,9 @@ def imwritestack_appe(stack, filename):
 Example:
     
 stack = np.random.rand(100,100,10)
-filename = 'output.tif'
+filename = 'C:\\Users\\hirak\\Kural\\Cell Reconstruction\\Cell Images (TIFF)\\output.tif'
 imwritestack_appe(stack, filename)
 
-So the whole tagstruct thing is to make sure the metadata of each slice is preserved, and apparently just
-appending each slice can lead to some metadata loss. But tbh I can't see the difference and I'm not
-convinced I set up the tagstruct here correctly but it seems alright.
+gonna be honest, i didn't wanna give up the functionality of it reading and appending
+a whole stack at a time so i just made a try except block to cover for 2d images
 '''
