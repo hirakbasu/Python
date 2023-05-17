@@ -76,7 +76,7 @@ def SLMimage(a, ixDO, isPrint):
             A = dispSLMimg(n, pxIx, vaz[i - 1], 0, isDbg)  # FLIP
             if isBlank:
                 A = np.transpose(A)
-            A = A[:ny0, :nx0, :]    # don't know if A is 3D, but if not it should be A = A[:ny0, :nx0]
+            A = A[:ny0, :nx0, :]
             # A = np.transpose(A, (1, 0, 2)), we'll see which one is the right one
             A = np.transpose(A, (2, 1, 0))
             A = np.where(A != 0, 1, 0).astype(np.uint8) # idk, something about cv2 needing uint8 data type
