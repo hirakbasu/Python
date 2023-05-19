@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from somewhere import initializeSLMpx, findPxSLM
 
 def dispSLMpattern(a, n, pxSz, t, s, isDbg):
     # a: pattern width

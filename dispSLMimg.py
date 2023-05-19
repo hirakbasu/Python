@@ -31,6 +31,7 @@ def dispSLMimg(n, pxIx, th, isDisp, isDbg):
     shifted_coords = restored_coords + new_center
     rotated_matrix[shifted_coords[:, 0], shifted_coords[:, 1]] = 1
     A = rotA
+    # Still looks like shit so it's a work in progress
     
     if isDisp:
         plt.imshow(A, cmap='gray')
