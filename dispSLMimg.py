@@ -20,7 +20,7 @@ def dispSLMimg(n, pxIx, th, isDisp, isDbg):
     center = np.array(A1.shape) // 2
     angle = np.deg2rad(th)
     rotation_matrix = np.array([[np.sin(angle), np.cos(angle)], [np.cos(angle), -np.sin(angle)]])   # Why this is it I do not know
-    coords = np.argwhere(line == 1)
+    coords = np.argwhere(A1 == 1)
     translated_coords = coords - center
     rotated_coords = np.dot(translated_coords, rotation_matrix)
     restored_coords = (rotated_coords + center).astype(int)
