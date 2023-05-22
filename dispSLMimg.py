@@ -18,9 +18,9 @@ def dispSLMimg(n, pxIx, th, isDisp, isDbg):
     # Okay so now we're gonna rotate because scipy.ndimage.rotate doesn't work, so this is gonna be manually done
     A1 = np.array(A)
     center = np.array(A1.shape) // 2
-    angle = np.radians(th)
-    rotation_matrix = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
-    coords = np.argwhere(A1 == 1)
+    angle = np.deg2rad(th)
+    rotation_matrix = np.array([[np.sin(angle), np.cos(angle)], [np.cos(angle), -np.sin(angle)]])   # Why this is it I do not know
+    coords = np.argwhere(line == 1)
     translated_coords = coords - center
     rotated_coords = np.dot(translated_coords, rotation_matrix)
     restored_coords = (rotated_coords + center).astype(int)
@@ -28,10 +28,10 @@ def dispSLMimg(n, pxIx, th, isDisp, isDbg):
     rotated_size = np.ceil(rotated_size).astype(int)
     rotated_matrix = np.zeros(rotated_size)
     new_center = (rotated_size - 1) // 2
-    shifted_coords = restored_coords + new_center
+    shifted_coords = restored_coords[:, ::-1] - center + new_center
     rotated_matrix[shifted_coords[:, 0], shifted_coords[:, 1]] = 1
-    A = rotA
-    # Still looks like shit so it's a work in progress
+    A = rotated_matrix
+    # Still looks like shit but it feels a lot better
     
     if isDisp:
         plt.imshow(A, cmap='gray')
