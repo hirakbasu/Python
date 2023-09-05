@@ -13,8 +13,8 @@ def PSF2OTFgenerate():
     gausKernelSg = np.linspace(1, 6, 21)
     gausKernelSg = np.linspace(1.5, 2, 11)
     gausKernelSg = np.linspace(1.2, 2.2, 41)
-    gausKernelSg = np.linspace(0.5, 1.175, 28)
-    gausKernelSg = np.linspace(0.1, 2.2, 43)    # 0.05 spacing
+    #gausKernelSg = np.linspace(0.5, 1.175, 28)
+    #gausKernelSg = np.linspace(0.1, 2.2, 43)    # 0.05 spacing
     # If you change this, change ffr.fnGenericOTF sigmaPSF
 
     PSF_stack = []
@@ -26,7 +26,7 @@ def PSF2OTFgenerate():
         PSF_stack.append(PSF)
 
         # Convert PSF to OTF
-        OTF = fftshift(fft2(PSF, (512, 512)))
+        OTF = fftshift(fft2(PSF, (2048, 2048)))
         OTF = np.abs(OTF)
         OTF = np.uint16(OTF / np.max(OTF) * (2 ** 16 - 1))
         OTF_stack.append(OTF)
